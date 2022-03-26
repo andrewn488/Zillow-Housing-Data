@@ -1,0 +1,51 @@
+---
+output: html_document
+---
+
+#### **To: Chris Lee**  
+  
+#### **From:**  
+  
+#### **Date: July 15, 2021**   
+  
+#### **RE: Zillow Data, PA3 Memo**  
+
+***
+
+```{r include = FALSE}
+# Set chunk options for the file
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+
+```
+
+```{r}
+# Course: 5210 Communicating Data
+# Purpose: PA3
+# Date: July 15th, 2021
+# Author:
+# Pushing commits: 7/21/2021
+
+```
+
+```{r message = FALSE, echo = FALSE}
+# Load librarys
+library(tidyverse)
+```
+
+```{r message = FALSE, echo = FALSE}
+houses <- read_csv("../02_raw_data/qp1_data.csv")
+```
+
+
+<br>
+![](ViewSquarefoot.png){width=1000px}
+<br>
+<br>
+<br>
+<br>
+![](ConditionYearrBuilt.png){width=1000px}
+<br>
+<br>
+<br>
+<br>
+![](ConditionGradeYearBuilt.png){width=1000px}

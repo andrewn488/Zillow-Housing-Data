@@ -1,0 +1,200 @@
+---
+title: "Participation Assignment 3 Technical Appendix"
+author: "Andrew Nalundasan"
+date: "7/7/21"   
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r echo = FALSE}
+# Course: 5210 Communicating Data
+# Purpose: Participation Assignment Technical Appendix
+# Date: July 14th, 2021
+# Author: Andrew Nalundasan
+# Pushing commits: 7/21/2021
+```
+
+```{r message = FALSE}
+library(ggannotate)  # annotate package that NHK recommends
+library(knitr)
+library(scales) # to get $ and , on axis in graph
+library(tidyverse)
+```
+
+# Load and transform data
+
+```{r}
+houses <- read_csv("../02_raw_data/qp1_data.csv")  # read data into environment and assign to variable
+
+houses <- houses %>% 
+  mutate(living_sqft_price = price/sqft_living)
+
+houses <- houses %>% 
+  mutate(lot_sqft_price = price/sqft_lot)
+# class(living_sqft_price)
+```
+
+# Scatter Plot
+
+```{r}
+# create vector for views we want to focus on
+c <- c(0, 4)
+
+# set color blind palette
+cb_palette <- c("#999999", "#6600FF")
+
+# build the viz
+sqft_view <- houses %>% 
+  group_by(sqft_living, view) %>% 
+  summarize(price_med = median(price)) %>% 
+  filter(view %in% c) %>% 
+  filter(sqft_living < 9000) %>% 
+  mutate(view = as.factor(view)) %>% 
+  ggplot(mapping = aes(x = sqft_living, y = price_med, color = view)) + 
+  scale_color_manual(values = cb_palette) + 
+  geom_point(alpha = 0.25) + 
+  geom_smooth(method = "lm", se = FALSE) + 
+  # scale_y_continuous(labels = dollar) + 
+  scale_y_continuous(label = label_number_si(accuracy = .5)) +
+  guides(color = "none", labels = "none") + 
+  theme_classic() + 
+  #theme(axis.line.x = element_blank()) + 
+  #theme(axis.line.y = element_blank()) + 
+  #theme(axis.ticks.x = element_blank()) + 
+  #theme(axis.ticks.y = element_blank()) +
+  labs(x = "Living Space (In Square Feet)",
+       y = "Median Price",
+       title = "Better views boost median home price", 
+       subtitle = "More living space paired with better\nviews compound value of home") + 
+  geom_text(data = data.frame(x = 7840.10833134011, y = 4134345.8884987, label = "Best View"),
+            mapping = aes(x = x, y = y, label = label),
+            hjust = 0L, vjust = 0.35, colour = "#6600FF", inherit.aes = FALSE) +
+  geom_text(data = data.frame(x = 7885.88402215883, y = 2430705.8095659, label = "Worst View"),
+            mapping = aes(x = x, y = y, label = label),
+            hjust = 0.3, vjust = 0.1, colour = "#999999", inherit.aes = FALSE)
+
+# view the viz
+sqft_view
+
+# save the viz
+ggsave(filename = "ViewSquarefoot.png", plot = sqft_view)
+
+```
+
+# Line Graph
+
+```{r}
+# set color blind palette
+cb_palette <- c("#999999", "#66CCCC", "#999999", "#999999", "#999999")
+
+# build the viz
+conditionbyyear <- houses %>%
+  group_by(condition, yr_built) %>% 
+  filter(yr_built > 1985) %>% 
+  summarise(med_price = median(price)) %>% 
+  ggplot(mapping = aes(x = yr_built, y = med_price, color = as.factor(condition), legend = "none")) + 
+  geom_path(size=1.5, lineend="round") +
+  
+  scale_x_continuous(breaks = c(1990, 1995, 2000, 2005, 2010, 2015)) + 
+  scale_y_continuous(label = label_number_si(accuracy = .1)) +
+  scale_color_manual(values = cb_palette) +
+  guides(color = "none", labels = "none") +
+  
+  theme_classic() +
+  labs(x = "Year Built", 
+       y = "Median Price", 
+       title = "Condition 1, 2, and 4 homes disappear by 2008", 
+       subtitle = "What changed with Zillow data inputs?", legend = "none") +
+  
+  # condition 1 label
+  geom_text(data = data.frame(x = 1996.77579381834, y = 173249.676731676, label = "Condition 1"),
+  mapping = aes(x = x, y = y, label = label),
+  hjust = 0.35, colour = "#999999", inherit.aes = FALSE) + 
+  
+  # condition 2 label
+  geom_text(data = data.frame(x = 2002, y = 944000.543861757, label = "Condition 2"),
+  mapping = aes(x = x, y = y, label = label),
+  hjust = 0L, vjust = 1L, colour = "#999999", inherit.aes = FALSE) + 
+  
+  # condition 4 label
+  geom_text(data = data.frame(x = 2009.08916352271, y = 1657355.06982258, label = "Condition 4"),
+  mapping = aes(x = x, y = y, label = label),
+  hjust = 0.1, vjust = 0L, colour = "#999999", inherit.aes = FALSE) +
+  
+  # condition 3 annotation
+  geom_text(data = data.frame(x = 2010.23618591617, y = 1009596.36234091, label = "Homes default to\nCondition 3"),
+  mapping = aes(x = x, y = y, label = label),
+  hjust = 0.05, vjust = 0.9, colour = "#66CCCC", fontface = 2, inherit.aes = FALSE) 
+
+# ggannotate(conditionbyyear)
+
+# view the viz
+conditionbyyear
+
+# save the viz
+ggsave(filename = "ConditionYearrBuilt.png", plot = conditionbyyear)
+
+```
+
+# Bar Graph
+
+```{r}
+
+# here is the scale: http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/
+
+# set color blind palette
+cb_palette <- c("#6600FF", "#999999", "#999999", "#999999", "#999999")
+
+# set grades to focus on
+grades <- c(9, 10)
+
+# build the viz
+ConditionVsGrade <- houses %>% 
+  group_by(grade, condition) %>% 
+  mutate(med_sqft = median(sqft_living)) %>% 
+  filter(med_sqft < 6000) %>% 
+  filter(grade %in% grades) %>% 
+  mutate(condition = as.factor(condition)) %>%
+  ggplot(mapping = aes(x = grade, y = med_sqft, fill = condition, legend = "none")) + 
+  scale_fill_manual(values = cb_palette) + 
+  geom_bar(stat = "identity", position = "dodge", color = "black") + 
+  scale_x_continuous(breaks = c(9, 10, 11, 12),
+                     labels = c("Good","Better","Great", "Best")) +
+  scale_y_continuous(label = label_number_si(accuracy = .1)) +
+  
+  labs(x = "Grade of Home",
+       y = "Median Square Feet", 
+       title = "Condition 2 homes are the most common\nhomes in Good and Better categories", 
+       subtitle = "Labels indicate condition of home") + 
+  
+  geom_text(data = data.frame(x = c(9.29542524070315, 8.60815686585263, 9.08960206015866, 8.84566347580964),
+  y = c(3344.86396524674, 4637.10129262948, 3082.03603425364, 3125.84068941915),
+  label = c("5", "2", "4", "3")),
+  mapping = aes(x = x, y = y, label = label),
+  inherit.aes = FALSE) +
+  
+  theme_classic() + 
+  theme(axis.line.x = element_blank()) + 
+  theme(axis.line.y = element_blank()) + 
+  theme(axis.ticks.x = element_blank()) + 
+  theme(axis.ticks.y = element_blank()) +
+  theme(legend.position = "none") 
+
+ggannotate(ConditionVsGrade)
+
+# view the viz
+ConditionVsGrade
+
+# save the viz
+ggsave(filename = "ConditionGradeYearBuilt.png", plot = ConditionVsGrade)
+
+```
+

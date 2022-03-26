@@ -1,0 +1,431 @@
+---
+title: "Use color wisely"
+author: "Gareth Green"
+output: slidy_presentation
+---
+
+```{r echo = FALSE}
+# Course: 5210 Communicating Data
+# Purpose: Illustrate good and bad examples of using color
+# Date: August 5, 2019
+# Author: Gareth Green
+
+```
+
+```{r echo = FALSE}
+# Clear environment of variables and functions
+rm(list = ls(all = TRUE)) 
+
+# Clear environmet of packages
+if(is.null(sessionInfo()$otherPkgs) == FALSE)lapply(paste("package:", names(sessionInfo()$otherPkgs), sep=""), detach, character.only = TRUE, unload = TRUE)
+
+```
+
+```{r message = FALSE, echo = FALSE}
+# Load packages
+library(tidyverse) 
+
+```
+
+```{r echo = FALSE}
+# Load data
+dis <- read.csv("Disability.csv")
+
+# Recode date to age range, this is to fix an Excel formatting problem
+dis <- dis %>% 
+  mutate(age_group = recode(age_group, `12-Jun` = "6-12"))
+
+# Remove small sample ethnicities
+dis <- dis %>% 
+  filter(ethnicity %in% c("Asian", "Black", "Hispanic", "White"))
+
+```
+
+
+Using color in graphs
+=========================================
+
+<div style="float: left; width: 55%;">
+
++ Color is powerful
+
+  - draws attention
+  - shows relationships
+
++ Often misused
+
+  - create a lot of clutter
+
++ Think of color being used four different ways
+
+  - draw attention - make one or a set of elements stand out
+  - qualitative - make no individual element stand out
+  - sequential - show order of elements 
+  - diverging - where elements diverge from neutral to two extremes
+
++ We will use the `colorspace` package to make coding easier
+
+  - other packages include RColorBrewer, wesanderson, colorfindr and many more
+
+</div>
+
+<div style="float: left; width: 45%;">
+
+```{r message = FALSE}
+# Load librarys, make sure to install these packages before running the code
+library(colorspace)
+
+# Plot reset color palettes
+hcl_palettes(plot = TRUE)
+
+```
+
+</div>
+
+
+Simple version of revised base graph - counts
+=========================================
+
+<div style="float: left; width: 50%;">
+
++ There is no reason for color in this graph
+
+```{r}
+# Basic bar graph
+dis %>% 
+  ggplot(mapping = aes(x = ethnicity)) +
+  geom_bar() +
+  coord_flip() +
+  theme_classic()
+
+```
+
+</div>
+
+<div style="float: left; width: 50%;">
+
++ But something other than black is easier on the eyes
+
+```{r}
+# Basic bar graph with custom color
+dis %>% 
+  ggplot(mapping = aes(x = ethnicity)) +
+  geom_bar(fill = "light blue") +
+  coord_flip() +
+  theme_classic()
+
+```
+
+</div>
+
+
+Color works similarly in most ggplot geoms
+=========================================
+
+<div style="float: left; width: 50%;">
+
+```{r}
+# Basic bar graph
+dis %>% 
+  ggplot(mapping = aes(x = age, y = expenditures)) +
+  geom_point() +
+  theme_classic()
+
+```
+
+</div>
+
+<div style="float: left; width: 50%;">
+
+```{r}
+# Basic scatter plot with cutom color
+dis %>% 
+  ggplot(mapping = aes(x = age, y = expenditures)) +
+  geom_point(color = "light blue") +
+  theme_classic()
+
+```
+
+</div>
+
++ When color is set in the `geom_xxx()` it changes color
+
+  - when color is set in `aes()` it looks for a variable
+
+
+What about using "_decorational_" color schemes?
+=========================================
+
++ Need to add `fill = ethnicity` and `scale_fill_discrete_xxx()` to add color based on `fill`
+
+<div style="float: left; width: 50%;">
+
++ Using qualitative colors is technically correct
+
+```{r}
+# Multi-hued decorative color schemes
+dis %>% 
+  ggplot(mapping = aes(x = ethnicity, fill = ethnicity)) +
+  geom_bar() +
+  coord_flip() +
+  theme_classic() +
+  scale_fill_discrete_qualitative(guide = FALSE)
+
+```
+
+</div>
+
+<div style="float: left; width: 50%;">
+
++ But this sequential gradient is less cluttered
+
+```{r}
+# Single-hued decorative color schemes
+dis %>% 
+  ggplot(mapping = aes(x = ethnicity, fill = ethnicity)) +
+  geom_bar() +
+  coord_flip() +
+  theme_classic() +
+  scale_fill_discrete_sequential(guide = FALSE)
+
+```
+
+</div>
+
++ **In both graphs we set `guide = FALSE` because we do not need a legend**
+
+
+What about in different geoms?
+=========================================
+
++ Similar, but use `scale_color_discrete_xxx()` since ethnicity is discrete
+
+  - **the `scale` function must match the attribute in the geom and variable**
+  - for example, if we wanted to specify point color by income we would use `scale_color_continuous_xxx()`   
+
+<div style="float: left; width: 50%;">
+
+```{r}
+# Vary color by discrete variable in scatterplot 
+dis %>% 
+  ggplot(mapping = aes(x = age, y = expenditures, color = ethnicity)) +
+  geom_point() +
+  theme_classic() +
+  scale_color_discrete_sequential()
+
+```
+
+</div>
+
+<div style="float: left; width: 50%;">
+
+```{r message = FALSE}
+dis %>% 
+  group_by(age, ethnicity) %>% 
+  summarize(med_exp = median(expenditures)) %>% 
+  ggplot(mapping = aes(x = age, y = med_exp, color = ethnicity)) +
+  geom_smooth(se = FALSE) +
+  theme_classic() +
+  scale_color_discrete_sequential()
+
+```
+
+</div>
+
+
+Draw attention - make one or a set of elements stand out
+=========================================
+
+<div style="float: left; width: 50%;">
+
+```{r}
+# Make one item stand out in bar graph
+dis %>% 
+  ggplot(mapping = aes(x = ethnicity, fill = ethnicity)) +
+  geom_bar() +
+  coord_flip() +
+  theme_classic() +
+  scale_fill_manual(values = c("gray", "gray", "red", "gray"), guide = FALSE)
+
+```
+
+</div>
+
+<div style="float: left; width: 50%;">
+
+```{r}
+# Make one item stand out in clustered bar graph
+dis %>% 
+  ggplot(mapping = aes(x = ethnicity, fill = interaction(ethnicity, gender))) +
+  geom_bar(position = "dodge") +
+  coord_flip() +
+  theme_classic() +
+  scale_fill_manual(values = c("dark gray", "dark gray", "dark red", "dark gray","light gray", "light gray", "red", "light gray"), guide = FALSE)
+
+```
+
++ The use of interaction() can be tricky, but allows using `fill` with multiple variables
+
+</div>
+
+
+Draw attention - make one or a set of elements stand out
+=========================================
+
+<div style="float: left; width: 50%;">
+
+```{r}
+# Single color scheme with scatter plot
+dis %>% 
+  ggplot(mapping = aes(x = age, y = expenditures, color = ethnicity)) +
+  geom_point() +
+  theme_classic() +
+  scale_color_manual(values = c("gray", "gray", "red", "gray"))
+
+```
+
+</div>
+
+<div style="float: left; width: 50%;">
+
+```{r message = FALSE}
+# Single color scheme with line graph made from geom_smooth()
+dis %>% 
+  group_by(age, ethnicity) %>% 
+  summarize(med_exp = median(expenditures)) %>% 
+  ggplot(mapping = aes(x = age, y = med_exp, color = ethnicity)) +
+  geom_smooth(se = FALSE) +
+  theme_classic() +
+  scale_color_manual(values = c("gray", "gray", "red", "gray"))
+
+```
+
+</div>
+
++ We will do more with this in annotation
+
+Qualitative
+=========================================
+
+<div style="float: left; width: 50%;">
+
++ The goal of using a qualitative palette is to have no individual value stand out
+
+  - this can be challenging:
+    - can look cluttered or discordant
+    - set palette might have a color that does stand out
+
+```{r color1, eval = FALSE}
+# Qualitative color scheme with bar graph
+dis %>% 
+  ggplot(mapping = aes(x = ethnicity, fill = gender)) +
+  geom_bar(position = "dodge") +
+  coord_flip() +
+  theme_classic() +
+  scale_fill_discrete_qualitative(palette = "Dark 2")
+
+```
+
+</div>
+
+<div style="float: left; width: 50%;">
+
+```{r ref.label = "color1", echo = FALSE}
+# Get previous graph
+
+```
+
+</div>
+
+
+Sequential - show order of elements 
+=========================================
+
+<div style="float: left; width: 50%;">
+
++ The goal of sequential is to create order
+
+  - but this can take some effort
+  - see here we have to use `reorder()` twice to get colors and count in consistent order
+
++ I feel sequential is easiest on the eye and uncluttered
+  
+```{r color2, eval = FALSE}
+# Sequential color scheme with bar graph
+dis %>% 
+  group_by(ethnicity) %>% 
+  summarise(count_n = n()) %>% 
+  ggplot(mapping = aes(x = reorder(ethnicity, count_n), y = count_n, fill = reorder(ethnicity, count_n))) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  theme_classic() +
+  scale_fill_discrete_sequential(palette = "Purples 2", guide = FALSE)
+
+```
+
+</div>
+
+<div style="float: left; width: 50%;">
+
+```{r ref.label = "color2", echo = FALSE}
+# Get previous graph
+
+```
+
+</div>
+
+
+Diverging - where elements diverge from neutral to two extremes
+=========================================
+
+<div style="float: left; width: 50%;">
+
+```{r}
+# Diverging color scheme with bar graph
+dis %>% 
+  ggplot(mapping = aes(x = ethnicity, fill = ethnicity)) +
+  geom_bar() +
+  coord_flip() +
+  theme_classic() +
+  scale_fill_discrete_diverging(palette = "Blue-Red 2", guide = FALSE)
+
+```
+
+</div>
+
+<div style="float: left; width: 50%;">
+
+```{r}
+# Diverging color scheme with scatter plot
+dis %>% 
+  ggplot(mapping = aes(x = age, y = expenditures, color = age_group)) +
+  geom_point() +
+  theme_classic() +
+  scale_color_discrete_diverging(palette = "Green-Orange", guide = FALSE)
+
+```
+
+</div>
+
+
+Wrap up
+=========================================
+
+<div style="float: right; width: 95%;">
+
++ A lot can be done to customize colors in a plot
+
+  - but do not just add color because you can
+
++ Consider using custom font colors to emphasize and deemphasize
+
+  - labels in gray rather than black to deemphasize
+  - labels in red to make stand out
+
++ However, must use colors carefully 
+
+  - it can be a fine line between emphasizing a finding and creating distraction and clutter
+
+</div>
+
+

@@ -1,0 +1,159 @@
+---
+title: 'Participation Assignment #3'
+date: "7/15/2021"
+output: html_document
+---
+
+#### **For: Participation Assignment #3**  
+  
+#### **Date: 07/15/2021**   
+  
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+```{r}
+# Course: OMSBA 5210
+# Purpose: Participation Assignment #3
+# Date: July 15, 2021
+```
+
+
+```{r}
+# The tidyverse package contains ggplot2, dplyr, and several other packages
+library(tidyverse)
+
+# The gridExtra package contains grid.arrange function used to combine plots in the same window
+library(gridExtra)
+
+# The janitor package contains tidyverse functions for cross-tables
+library(janitor)
+
+# The knitr package contains some table formatting functions
+library(knitr)
+
+# The GGally package contains a custom correlation plot
+library(GGally)
+
+# vtable for reppin NHK
+library(vtable)
+
+# correlation matrix
+library(corrplot)
+
+# to get $ and , on axis in graph
+library(scales)
+```
+
+
+```{r}
+# Load and prepare data 
+zillow <- read_csv("../02_raw_data/qp1_data.csv")
+
+options(scipen = 100)    # remove scientific notation
+
+vtable(zillow)
+```
+
+
+```{r}
+# Transform zillow data
+
+bath <-  c("1", "1.5", "2", "2.5", "3", "3.5", "4")
+
+z_trans <- zillow %>% 
+  filter(bedrooms < 5) %>% 
+  mutate(bedrooms = as.factor(bedrooms)) %>% 
+  filter(bathrooms %in% bath) %>% 
+  mutate(bathrooms = as.factor(bathrooms))
+
+vtable(z_trans)
+
+```
+
+```{r}
+cb_palette <- c("#999999", "#CC0033", "#999999", "#999999", "#999999")
+
+# bar graphs
+condish <- z_trans %>% 
+  mutate(condition = as.factor(condition)) %>% 
+  group_by(condition) %>% 
+  summarize(med_price = median(price)) %>% 
+  
+  ggplot(mapping = aes(x = condition, y = med_price, fill = condition)) + 
+  scale_fill_manual(values = cb_palette) +
+  geom_bar(stat = "identity") + 
+  scale_y_continuous(labels = dollar) + 
+  coord_flip() + 
+  
+geom_text(data = data.frame(x = 2.12919320414293, y = 320788.973543494, label = "Lowest home value"),
+          mapping = aes(x = x, y = y, label = label),
+          colour = "red", fontface = 2, inherit.aes = FALSE) + 
+  
+  theme_classic() + 
+  theme(axis.line.x = element_blank()) + 
+  theme(axis.line.y = element_blank()) + 
+  theme(axis.ticks.x = element_blank()) + 
+  theme(axis.ticks.y = element_blank()) +
+
+  labs(x = "",
+       y = "",
+       title = "Median price distribution with respect to home condition",
+       subtitle = "Condition 2 has lowest home value") + 
+  theme(legend.position = "none") + 
+  guides(color = "none", labels = "none")
+  
+   
+# annotations
+# ggannotate(condish)
+
+# view the viz
+condish
+
+```
+
+
+```{r}
+# Line graphs
+z_trans %>% 
+  filter(bathrooms %in% bath) %>%
+  group_by(yr_built, bathrooms) %>% 
+  summarize(med_price = median(price)) %>% 
+  ggplot(mapping = aes(x = yr_built, y = med_price, linetype = bathrooms)) +
+  geom_line() +
+  theme_classic()
+```
+
+```{r}
+z_trans %>% 
+  filter(bathrooms %in% bath) %>%
+  group_by(yr_built, bathrooms) %>% 
+  summarize(med_price = median(price)) %>% 
+  ggplot(mapping = aes(x = yr_built, y = med_price)) +
+  geom_line() +
+  theme_bw() +
+  facet_wrap(~ bathrooms) +
+  scale_y_continuous(labels = dollar) +
+  scale_linetype_discrete(guide = "none")
+```
+
+
+```{r}
+# Line graphs
+
+grd <- c("8", "9")
+
+z_trans %>% 
+  filter(grade %in% grd) %>%
+  mutate(grade = as.factor(grade)) %>% 
+  group_by(yr_built, grade) %>% 
+  summarize(med_price = median(price)) %>% 
+  ggplot(mapping = aes(x = yr_built, y = med_price, color = grade)) +
+  geom_line() +
+  scale_y_continuous(label = dollar) + 
+  theme_classic()
+```
+
+
+

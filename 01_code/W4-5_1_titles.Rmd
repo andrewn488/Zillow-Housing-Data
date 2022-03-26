@@ -1,0 +1,403 @@
+---
+title: "Titles, labels and legends"
+author: "Gareth Green"
+output: slidy_presentation
+---
+
+```{r echo = FALSE}
+# Course: 5210 Communicating Data
+# Purpose: Demonstration of visual design step-by-step
+# Date: August 5, 2019
+# Author: Gareth Green
+
+```
+
+```{r echo = FALSE}
+# Clear environment of variables and functions
+rm(list = ls(all = TRUE)) 
+
+# Clear environmet of packages
+if(is.null(sessionInfo()$otherPkgs) == FALSE)lapply(paste("package:", names(sessionInfo()$otherPkgs), sep=""), detach, character.only = TRUE, unload = TRUE)
+
+```
+
+```{r message = FALSE, echo = FALSE}
+# Load packages
+library(tidyverse) 
+
+```
+
+```{r echo = FALSE}
+# Load data
+dis <- read.csv("Disability.csv")
+
+# Recode date to age range, this is to fix an Excel formatting problem
+dis <- dis %>% 
+  mutate(age_group = recode(age_group, `12-Jun` = "6-12"))
+
+```
+
+
+Titles, labels and legends
+=========================================
+
+<div style="float: left; width: 50%;">
+
++ Titles and labels are informative text used to describe the visual
+
+  - often used in an uninformative manner
+  - for example, the main title often repeats the axes
+    - i.e. Median expenditures by ethnicity
+    - which is informative, but repetitive so becomes clutter
+
++ Think of the set of labels on a visual as a whole rather than individually
+
+  - if axes are well labeled you can use the title and subtitle to inform what the goal of the in visual
+
++ We do two things in this set of slides
+
+    1. Discuss _best practices_ of titles, labels and legends
+    2. How to accomplish the best practices in ggplot
+      - this is a challenge regardless of the software you use
+
+</div>
+
+<div style="float: left; width: 50%;">
+
+**Best practices**
+
++ Title/subtitle: indicate the main/sub points you want the audience to see in the visual
+
+  - always set while graphing
+  - avoid long titles, be concise
+
++ Axes and legend labels: variable and units (if applicable)
+
+  - often taken from the data, but you can format factor level names or digits while wrangling or graphing
+  
++ Tick and legend labels: factor level or quantity
+
+  - format appropriately (no scientific notation, %, $, ",", etc)
+  - often taken directly from the data, but you can format factor level names or digits in the data or while wrangling
+
++ Reference labels: additional labels that could include a figure number or source
+
+</div>
+
+
+Primary titles and labels
+=========================================
+
+<div style="float: left; width: 50%;">
+
++ Recall the base graph we have been redesigning
+
++ Can set title and change axes and legend labels with the `labs()` function
+
+  - of course there are other ways as well: `ggtitle()`, `xlab()`, `ylab()`, change variable name in data, etc
+
++ Have added or updated each of these with one function
+
+```{r title1, eval = FALSE}
+# The base graph we have been redesigning plus labs() function
+dis %>% 
+  group_by(ethnicity, gender) %>% 
+  summarize(med_exp = median(expenditures)) %>% 
+  ggplot(mapping = aes(x = reorder(ethnicity, med_exp), y = med_exp, fill = reorder(gender, med_exp))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  coord_flip() +
+  scale_fill_discrete(limits = c("Female", "Male")) +
+  theme_classic() +
+  labs(title = "Main title\nmain title continued", 
+       subtitle = "Subtitle", fill = "Legend\ntitle", 
+       x = "New x-axis label", y = "New y-axis label", 
+       tag = "Tag", caption = "Caption")
+
+```
+
+</div>
+
+<div style="float: left; width: 50%;">
+
+```{r ref.label = "title1", echo = FALSE}
+# Get the previous graph
+
+```
+
+</div>
+
+
+A couple of things to notice
+=========================================
+
+<div style="float: left; width: 50%;">
+
+```{r ref.label = "title1", echo = FALSE}
+# Get the previous graph
+
+```
+
+</div>
+
+<div style="float: left; width: 50%;">
+
++ Look at the additional code and graph to see which element in code relates to element in the graph
+
++ Additional code
+
+      labs(title = "Main title\nmain title continued", 
+           subtitle = "Subtitle", fill = "Legend\ntitle", 
+           x = "New x-axis label", y = "New y-axis label", 
+           tag = "Tag", caption = "Caption")
+             
++ Can create a new line in text using \\n
+
++ Why are the x and y axis labels reversed??
+
++ `tag =` would likely be a figure number or something else
+
++ `caption = ` would likely be a source or reference
+
+</div>
+
+
+Primary titles and labels
+=========================================
+
+<div style="float: left; width: 50%;">
+
++ Must be careful with your titles and labels 
+
+  - **they can clutter a visual**
+
++ _Figure 1_ might be better handled another way
+
++ I think the sub-title is too long
+
+  - using two lines looks cluttered
+  - **should remove the small sample ethnicities from the analysis**
+    - could be misleading and add clutter
+    - could be used to support a false narrative
+
++ I removed the y-axis and legend labels to reduce clutter
+
+  - these variables are self-explanatory
+  
+</div>
+
+<div style="float: left; width: 50%;">
+
+```{r echo = FALSE}
+# The base graph we have been redesigning plus labs() function
+dis %>% 
+  group_by(ethnicity, gender) %>% 
+  summarize(med_exp = median(expenditures)) %>% 
+  ggplot(mapping = aes(x = reorder(ethnicity, med_exp), y = med_exp, fill = reorder(gender, med_exp))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  coord_flip() +
+  scale_fill_discrete(limits = c("Female", "Male")) +
+  theme_classic() +
+  labs(title = "There is a wide variation of expenditures by ethnicity", 
+       subtitle = "However, only Asian, Black, Hispanic and White have\n large enough samples to be statistically valid",
+       fill = "", 
+       x = "", y = "Median expenditures", 
+       tag = "Figure 1", caption = "\nSource: Disability.csv data set from Week 1")
+
+```
+
+</div>
+
+
+A remake of the overall graph
+=========================================
+
+<div style="float: left; width: 50%;">
+
++ Remove the small sample ethnicities from the analysis
+
+  - problem is that Male median expenditures is much larger than Female
+  - but we found this is due a difference in age profile
+    - more young Female with lower expenditures and more older Males with high expenditures
+  - based on our analysis, this visual is misleading 
+  
++ We will continue using this visual for demonstration purposes
+
++ I added a note in the subtitle to _see the discussion_
+
+  - best not to use a deceiving visual, but if you have to make sure to **debunk or discuss the deception**
+  
+</div>
+
+<div style="float: right; width: 50%;">
+
+```{r echo = FALSE}
+# Name the new overall graph p so as not to have so much repetitive code
+p <- dis %>% 
+  filter(ethnicity %in% c("Asian", "Black", "Hispanic", "White")) %>% 
+  group_by(ethnicity, gender) %>% 
+  summarize(med_exp = median(expenditures)) %>% 
+  ggplot(mapping = aes(x = reorder(ethnicity, med_exp), y = med_exp, fill = gender)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  coord_flip() +
+  scale_fill_discrete(limits = c("Male", "Female")) +
+  theme_classic() +
+  labs(title = "There is a wide variation of expenditures by ethnicity, but not by gender", 
+       subtitle = "The difference by gender for White and Black is deceiving\ndue to differences in age profiles and associated expenditures (see discussion)",
+       fill = "", x = "", y = "Median expenditures", 
+       caption = "\nSource: Disability.csv data set from Week 1")
+
+p
+
+```
+
+</div>
+
+
+Tick labels and marks
+=========================================
+
+<div style="float: left; width: 50%;">
+
++ We saw some tick label and mark customization earlier
+
+```{r tick1, eval = FALSE}
+# Change the axis ticks and labels using 
+p <- p + # p is the overall base graph
+  theme(axis.ticks.y = element_blank(),
+        axis.line.y = element_blank(),
+        axis.ticks.x = element_blank()) +
+  scale_y_continuous(breaks = seq(0, 30000,5000))
+
+p
+
+```
+
++ Also see the following link [http://www.sthda.com/english/wiki/ggplot2-axis-ticks-a-guide-to-customize-tick-marks-and-labels](http://www.sthda.com/english/wiki/ggplot2-axis-ticks-a-guide-to-customize-tick-marks-and-labels)
+
+  - this web site details many ways to customize your axis ticks
+
+</div>
+
+<div style="float: left; width: 50%;">
+
++ Look at the code and graph to see which element in code relates to element in the graph
+
+```{r ref.label = "tick1", echo = FALSE}
+# Get the previous graph
+
+```
+
+</div>
+
+
+Tick labels and marks
+=========================================
+
+<div style="float: left; width: 50%;">
+
++ We can go one step further by loading the `scales` package
+
+  - the `scales` package has custom formatting for tick labels
+  - here we will use the `labels = dollars`
+
+```{r tick2, message = FALSE, eval = FALSE}
+# Load library
+library(scales)
+
+# Change the axis ticks and labels using 
+p <- p + scale_y_continuous(breaks = seq(0, 30000,5000),
+                            labels = dollar)
+
+p
+
+```
+
+</div>
+
+<div style="float: left; width: 50%;">
+
++ Look at the code and graph to see which element in code relates to element in the graph
+
+```{r ref.label = "tick2", message = FALSE, echo = FALSE}
+# Get the previous graph
+
+```
+
+</div>
+
+
+Legend location and labels
+=========================================
+
+<div style="float: left; width: 50%;">
+
++ We've already seen how to change the legend title
+
+  - it will usually be a variable name
+  
++ Can also change the location and labels
+
+  - note, I used `values = c("#F8766D", "#00BFC4")` to set the color
+
+```{r legend1, message = FALSE, eval = FALSE}
+# Change the legend location, title and labels 
+p <- p + theme(legend.position = "bottom") +
+         scale_fill_manual(labels = c("Women", "Men"), values = c("#F8766D", "#00BFC4")) 
+
+p
+
+```
+
+</div>
+
+<div style="float: left; width: 50%;">
+
+```{r ref.label = "legend1", message = FALSE, echo = FALSE}
+# Get the previous graph
+
+```
+
+</div>
+
+
+Wrap up
+=========================================
+
+<div style="float: left; width: 50%;">
+
++ We have only scratched the surface of what you can do for formatting
+
+  - pretty much anything is possible if it makes sense
+  - but it could take some effort to figure it out
+  - there is more than one way to achieve a goal
+
++ There are many additional functions similar to what we have used
+
+  - earlier and here you saw many option using the `theme()` function
+  - also many `scale_xxx_yyyy()` functions
+    - the `xxx` relates to an aes() attribute like x, y, fill, color, size, shape, alpha, etc...
+    - the `yyy` relates to variable position along an axes like continuous, discrete, date, time, manual, etc 
+    
+</div>
+
+<div style="float: left; width: 50%;">
+
++ For example: 
+
+  - `scale_fill_manual(labels = c("Women", "Men"), 
+                                  values = c("#F8766D", "#00BFC4"))` 
+    - set custom labels and color for `fill = gender` that was specified in `aes()`
+  - `scale_y_continuous(breaks = seq(0, 30000,5000),
+                        labels = dollar)`
+    - set custom axes breaks and labels for `y = med_exp` that was specified in `aes()`
+
++ You will **always** need to make changes like this to make your visuals professional and easy to read
+
+  - each software package will require you to figure out how to make the changes
+  - the good thing about _R_ is that you can use code to recreate what you have done
+    - in Excel, PowerBI, Tableau, etc you can point-and-click
+    - but cannot recreate the commands automatically
+
+</div>
+
+

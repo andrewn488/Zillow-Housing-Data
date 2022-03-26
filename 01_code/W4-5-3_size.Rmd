@@ -1,0 +1,425 @@
+---
+title: "Shape, size and linetype"
+author: "Gareth Green"
+output: slidy_presentation
+---
+
+```{r echo = FALSE}
+# Course: 5210 Communicating Data
+# Purpose: Demonstrate the use of Shape, size and linetype
+# Date: August 5, 2019
+# Author: Gareth Green
+
+```
+
+```{r echo = FALSE}
+# Clear environment of variables and functions
+rm(list = ls(all = TRUE)) 
+
+# Clear environmet of packages
+if(is.null(sessionInfo()$otherPkgs) == FALSE)lapply(paste("package:", names(sessionInfo()$otherPkgs), sep=""), detach, character.only = TRUE, unload = TRUE)
+
+```
+
+```{r message = FALSE, echo = FALSE}
+# Load packages
+library(tidyverse) 
+
+```
+
+```{r echo = FALSE}
+# Load data
+dis <- read.csv("Disability.csv")
+
+# Recode date to age range, this is to fix an Excel formatting problem
+dis <- dis %>% 
+  mutate(age_group = recode(age_group, `12-Jun` = "6-12"))
+
+# Remove small sample ethnicities
+dis <- dis %>% 
+  filter(ethnicity %in% c("Asian", "Black", "Hispanic", "White"))
+
+```
+
+
+Shape, size and linetype
+=========================================
+
+<div style="float: right; width: 95%;">
+
++ Size and shape are most commonly used in scatter plots
+
+  - size and shape can be difficult to detect
+  - points tend to blend together and overlap
+
++ Linetype are most commonly used in line graphs
+
+  - linetypes are good for several variables 
+  - too many creates clutter
+  - often linetypes can look quite similar
+
++ Size can be used on quantiative variables
+
++ Shape and linetype can be used on factor variables
+
+  - different shape/linetype for each factor level
+  - can sometimes use thickness to make a specific factor level stand out
+
++ I recommend using size and shape sparingly
+
+  - linetypes are good for 5 or fewer factor levels
+
+</div>
+
+
+Shape
+=========================================
+
+<div style="float: left; width: 55%;">
+
++ Shape is set with the `shape =` attribute in the `aes()` of the `ggplot()` or `geom_point()` functions
+
++ This scatter plot helps illustrate when to use shape
+
+  - below age 25 there are so many overlapping points that we cannot see the different shapes
+    - don't use shape when there are many overlapping points
+  - above age 25 the points spread out
+    - okay to use shape when points are spread out
+    
++ However, it can still be difficult to see shapes when spread out
+
+  - can you easily see the difference between squares and circles?
+
+```{r shape, eval = FALSE}
+# Basic scatter plot with base shape points
+dis %>% 
+  ggplot(mapping = aes(x = age, y = expenditures, shape = ethnicity)) +
+  geom_point() +
+  theme_classic()
+
+```
+
+</div>
+
+<div style="float: left; width: 45%;">
+
+```{r ref.label = "shape", echo = FALSE}
+# Basic scatter plot with different shape points
+
+```
+
+</div>
+
+
+Variety of shapes
+=========================================
+
+<div style="float: left; width: 50%;">
+
++ There are a variety of shapes available in ggplot
+
+  - below is a list by shape number
+  
+```{r echo = FALSE}
+# Show a list of available shapes
+data.frame(shape = 0:24) %>% 
+  ggplot(mapping = aes(0, 0, shape = shape)) +
+  geom_point(aes(shape = shape), size = 5, fill = "red") +
+  scale_shape_identity() +
+  facet_wrap( ~ shape) +
+  theme_void()
+
+```
+
++ Can set custom shapes
+
+</div>
+
+<div style="float: left; width: 50%;">
+
+```{r}
+# Basic scatter plot with different shape points and base size
+dis %>% 
+  ggplot(mapping = aes(x = age, y = expenditures, shape = ethnicity)) +
+  geom_point() +
+  theme_classic() +
+  scale_shape_manual(values = c(0, 4, 16, 3)) # set custom points
+
+```
+
+</div>
+
+
+Size
+=========================================
+
++ There are two ways to use size - set base size or distinguish different data
+
+<div style="float: left; width: 50%;">
+
++ To set the base size of points set `size = #`
+
+```{r}
+# Scatter plot with different shapes but larger size
+dis %>% 
+  ggplot(mapping = aes(x = age, y = expenditures, shape = ethnicity)) +
+  geom_point(size = 3) +
+  theme_classic()
+
+```
+
+</div>
+
+<div style="float: left; width: 50%;">
+
++ To distinguish different data set size in the `aes()` function
+
+```{r}
+# Set size by magnitude of data
+dis %>% 
+  ggplot(mapping = aes(x = age, y = expenditures, size = expenditures)) +
+  geom_point() +
+  theme_classic()
+
+```
+
+</div>
+
+
+Shape and size
+=========================================
+
+<div style="float: left; width: 50%;">
+
++ You can set size by a factor variable as well, but it is not advised
+
+  - note size is set within the `aes()` function because you are mapping the aesthetic to a characteristic of the data
+
++ Note, the multiple legends clutter the graph
+
+```{r shape_size1, eval = FALSE, warning = FALSE}
+# Basic scatter plot with different size and shape points
+dis %>% 
+  ggplot(mapping = aes(x = age, y = expenditures, shape = ethnicity, size = factor(ethnicity))) +
+  geom_point() +
+  theme_classic() 
+
+```
+
+</div>
+
+<div style="float: left; width: 50%;">
+
+```{r ref.label = "shape_size1", echo = FALSE, warning = FALSE}
+# Call previous graph
+
+```
+
+</div>
+
+
+Custom shape and size
+=========================================
+
+<div style="float: left; width: 50%;">
+
++ You can set shape and size and combine into one legend
+
+  - using the `scale_shape_manual()` and `scale_size_manual()` creates custom shapes and sizes
+    - setting `values = c()` gives the custom shape and size
+    - including "" combines the legends into one
+
+```{r shape_size2, eval = FALSE}
+# Basic scatter plot with different shape points
+dis %>% 
+  ggplot(mapping = aes(x = age, y = expenditures, shape = ethnicity, size = factor(ethnicity))) +
+  geom_point() +
+  theme_classic() +
+  scale_size_manual("", values = c(4, 2, 3, 1)) +
+  scale_shape_manual("", values = c(0, 4, 16, 3))
+
+```
+
+</div>
+
+<div style="float: left; width: 50%;">
+
+```{r ref.label = "shape_size2", echo = FALSE, message = FALSE}
+# Call previous graph
+
+```
+
+</div>
+
+
+Shapes with color and size
+=========================================
+
+<div style="float: left; width: 50%;">
+
+```{r}
+# Basic scatter plot with different shape and color points
+dis %>% 
+  ggplot(mapping = aes(x = age, y = expenditures, shape = ethnicity, color = ethnicity)) +
+  geom_point() +
+  theme_classic()
+
+```
+
++ Using color to further distinguish points
+
+  - recall, you must set `color = ethnicity` within `aes()`
+  - though it is easier to see the difference, this is due to color not shape
+
+</div>
+
+<div style="float: left; width: 50%;">
+
+```{r}
+# Basic scatter plot with base shape and larger size points
+dis %>%   
+  ggplot(mapping = aes(x = age, y = expenditures, shape = ethnicity)) +
+  geom_point(size = 2) +
+  theme_classic()
+
+```
+
++ Here we are increasing the size of all points so it is easier to see them
+
+  - not distinguishing different data by size
+  - set size outside of the `aes()` function
+
++ This is good and bad - can see the shape but more overlap
+  
+</div>
+
+
+Linetype
+=========================================
+
+<div style="float: left; width: 50%;">
+
++ Line graphs are best used to illustrate continuity
+
+  - most commonly used in time series data
+  - we will add a date variable to illustrate the use of linetypes
+  
+```{r}
+# Create random dates for making line graphs
+dis$date <- sample(seq(as.Date("2015/01/01"), as.Date("2018/01/01"), by = "month"), nrow(dis), replace = TRUE)
+
+```
+
++ Two things to note:
+
+  1. a standard line graph is not good for this data - **spaghetti graph**
+  2. it can be difficult to decifer the base linetypes in ggplot
+
+```{r linetype1, eval = FALSE}
+dis %>% 
+  group_by(date, ethnicity) %>% 
+  summarize(med_exp = median(expenditures)) %>% 
+  ggplot(mapping = aes(x = date, y = med_exp, linetype = ethnicity)) +
+  geom_line() +
+  theme_classic()
+
+```
+
+</div>
+
+<div style="float: left; width: 50%;">
+
+```{r ref.label = "linetype1", echo = FALSE, message = FALSE}
+# Call previous graph
+
+```
+
+</div>
+
+
+Variety of linetypes
+=========================================
+
+<div style="float: left; width: 95%;">
+
++ There are a variety of linetypes available in ggplot
+
+  - below is a list by linetype number
+  
+```{r echo = FALSE}
+# Show a list of available linetypes
+data.frame(linetype = factor(1:13)) %>% 
+  ggplot(mapping = aes(0, 0, linetype = linetype)) +
+  geom_segment(mapping = aes(x = 0, xend = 1, y = linetype, yend = linetype, linetype = linetype), size = 1.1)+
+  scale_x_continuous(limits = c(0, 1), breaks = NULL, name = "") +
+  scale_y_discrete(name = "") +
+  guides(linetype = guide_legend(reverse = TRUE)) +
+  theme_void()
+
+```
+
+
+</div>
+
+
+Improving readability with linetype
+=========================================
+
+<div style="float: left; width: 50%;">
+
++ Set custom linetype and size manually
+
+```{r}
+# Custom linetypes
+dis %>% 
+  group_by(date, ethnicity) %>% 
+  summarize(med_exp = median(expenditures)) %>% 
+  ggplot(mapping = aes(x = date, y = med_exp, linetype = ethnicity, size = ethnicity)) +
+  geom_line() +
+  theme_classic() +
+  scale_linetype_manual(values = c(1, 3, 6, 10)) +
+  scale_size_manual(values = c(0.5, 1, 1.25, 1))
+
+```
+
+</div>
+
+<div style="float: left; width: 50%;">
+
++ Seperate line graphs using facets
+
+```{r}
+# Using facets
+dis %>% 
+  group_by(date, ethnicity) %>% 
+  summarize(med_exp = median(expenditures)) %>% 
+  ggplot(mapping = aes(x = date, y = med_exp, linetype = ethnicity)) +
+  geom_line() +
+  theme_bw() +
+  facet_wrap(~ ethnicity) +
+  scale_linetype_discrete(guide = FALSE)
+
+```
+
+</div>
+
+
+Wrap up
+=========================================
+
+<div style="float: right; width: 95%;">
+
++ You have to be careful using shape, size and linetype
+
+  - easy to create clutter
+  - can make a graph difficult to read
+  - **remember**, your goal is to make it as easy as possible for the audience to understand your main point
+    - adding too much to a graph can have the opposite effect
+
++ Remember, just becasuse you can do something doesn't mean you should
+
+  - only add differences in shape, size and linetype if they make it easier for your audience
+
+</div>
+
+

@@ -1,0 +1,317 @@
+---
+title: "Focusing your audiences attention"
+author: "Gareth Green"
+output: slidy_presentation
+---
+
+```{r echo = FALSE}
+# Course: 5210 Communicating Data
+# Purpose: SWD Ch 4 Focusing your audience's attention
+# Date: August 5, 2019
+# Author: Gareth Green
+
+```
+
+```{r echo = FALSE}
+# Clear environment of variables and functions
+rm(list = ls(all = TRUE)) 
+
+# Clear environmet of packages
+if(is.null(sessionInfo()$otherPkgs) == FALSE)lapply(paste("package:", names(sessionInfo()$otherPkgs), sep=""), detach, character.only = TRUE, unload = TRUE)
+
+```
+
+```{r message = FALSE, echo = FALSE}
+# Load packages
+library(tidyverse) 
+
+```
+
+```{r echo = FALSE}
+# Load data
+dis <- read.csv("Disability.csv")
+
+# Recode date to age range, this is to fix an Excel formatting problem
+dis <- dis %>% 
+  mutate(age_group = recode(age_group, `12-Jun` = "6-12"))
+
+```
+
+
+Storytelling with Data Ch 4: Focusing your audience's attention
+===============================================
+
+<div style="float: right; width: 95%;">
+
++ EDA and modeling are about finding the important message
+
+    - but that is not enough
+    - you need to invest sufficient effort to communicate the message/finding
+
++ We have discussed and demonstrated:
+
+    1. best practices for communication and designing visuals
+    2. how to choose the appropriate visual for your data and message
+    3. how to reduce clutter so your message is clear
+
++ Now we will detail how to focus your audiences attention 
+
+  - make sure they understand the message/finding you are trying to communicate
+  - make it easy to understand your message/finding
+
+</div>
+
+
+Focus your audience's attention
+===============================================
+
+<div style="float: right; width: 95%;">
+
++ You are working on your presentation visuals
+
+    - you have considered your audience and the relevant context
+        - i.e. what is the goal, target, or comparison
+    - you have determined an effective visual for your data and message
+        - recall the basic rules of bar graphs, scatterplots, line graphs, etc...
+    - you have removed the excess clutter from the visual
+        - the stuff that R, Excel, PowerBI, Tableau add for no reason
+
++ Now, how do you make sure the audience sees what you want them to see?
+
+    - it is time to consider what your audience sees and remembers
+    
+  >Preattentive Attributes: size/shape, color, and position
+
+    1. Use these to direct your audiences attention
+    2. Use to build a visual hierarchy to lead your audience through the information
+
+</div>
+
+
+Focus your audience's attention  
+===============================================
+
+<div style="float: right; width: 95%;">
+
++ Preattentive attributes signal where to look
+
+    - consider the following exmample from SWD
+
+How many 3's are in the block of numbers?
+
+> 7 5 6 3 9 5 0 6 8 4 7 3  
+> 6 5 8 6 6 3 0 3 7 5 7 6  
+> 8 6 0 3 7 2 6 5 8 6 0 2  
+> 8 4 6 5 8 9 1 0 7 8 3 0  
+
++ Its not easy to count because they blend in
+
++ Now we will increase the intensity of the **3**s
+    
+</div>
+
+
+Focus your audience's attention  
+===============================================
+
+<div style="float: right; width: 95%;">
+
+How many 3's are in the block of numbers?
+
+> 7 5 6 **3** 9 5 0 6 8 4 7 **3**  
+> 6 5 8 6 6 **3** 0 **3** 7 5 7 6  
+> 8 6 0 **3** 7 2 6 5 8 6 0 2  
+> 8 4 6 5 8 9 1 0 7 8 **3** 0  
+
++ Your eyes jump from one 3 to the next
+
+    - think about how to the same thing with your message
+
+<br>
+
+>**Don't just show the data, use the data to tell a story**  
+
+</div>
+
+
+Focus your audience's attention - preattentive attributes
+===============================================
+
+<div style="float: right; width: 95%;">
+
++ Using **titles, color (contrast), size/shape, and annotations**
+
++ Your audience will see these elements first
+
+    - you can create a visual hierarchy
+    - must use sparingly, otherwise it just looks cluttered
+      - produce cognitive overload
+
++ Using preattentive attributes are good in explanatory visuals
+
+    - do not use in EDA
+    - may *hide* something you should discover
+
+In text color or bold are generally more effective
+
+  - italics don't really show up
+  - underline and text boxes look cluttered
+
+</div>
+
+
+Focus your audience's attention - titles  
+===============================================
+
+<div style="float: right; width: 95%;">
+
++ We've talked about how experts read individual visuals
+
+    - title, axes labels, and legend
+
++ Consider this with the positions on your visual - the title is critical
+
+  - **don't** just have "Disability Analysis" or "Expenditures by age" as a title
+  - tell why the visual is important
+      - why your audience should care
+
++ Highlight main points
+
+  - let sub-points fade into the background
+  - surprising how software like PowerBI does the opposite
+
++ Similar on a dashboard 
+
+  - we will discuss focusing your audiences attention with respect to dashboards in week 7
+
+</div>
+
+
+Focus your audience's attention - color  
+===============================================
+
+<div style="float: left; width: 50%;">
+
++ Color in graphs is one of the strongest tools
+
+    - emphasize the important elements of your visual
+        - the elements that support our message
+    - consider deemphasizing less important elements 
+        - keep for less important for context
+        - or elimiate less important if you have good reason
+
+</div>
+
+<div style="float: left; width: 50%;">
+
++ Consider strategic use of color
+
+    - use gray as a base color rather than black
+    - use a single color palatte
+      - create contrast within a single palatte rather than stark color contrast
+      - do not use red and blue together unless you want to show divergence
+    - use color sparingly
+    - use color consistently
+    - consider people that are colorblind
+         - hard to see shades of red and green together
+    - blues or individual color schemes with different shades
+
+</div>
+
+
+Focus your audience's attention - size/shape 
+===============================================
+
+<div style="float: left; width: 50%;">
+
++ We often use size/shape without realizing it
+
+  - the height of bar in graphs and histograms is size
+  - size/shape of points in a scatter plot
+  - line thickness can be used to emphasize a particular line
+    
++ I do not use size/shape in individual visuals much
+
+  - the eye does not detect small differences in size/shape
+  - sometimes using different size/shapes looks like clutter and is distracting
+
+</div>
+
+<div style="float: left; width: 50%;">
+
++ Often use size to highlight text you want to standout
+
+  - for example, titles are usually larger than other text  
+  - though color or intensity (bold) can be more effective
+
++ Size can be important in dashboards
+
+    - the eye is drawn to a larger graph
+    - use your dash layout to highlight your main point
+    - use smaller visuals to provide context
+
+</div>
+
+
+Focus your audience's attention - annotations
+=========================================
+
+<div style="float: left; width: 45%;">
+
++ Annotations are methods to make portions of the data stand out
+
+  - typical examples are text and shading
+  
++ Text can be used within a plot to label specific data points
+
+  - must be careful to not introduce clutter
+  - usually only want to label one or several data points
+  - label regions of a graph
+
+</div>
+
+<div style="float: left; width: 55%;">
+
++ Shading or enclosing can be used to highlight regions of a graph
+
+  - indicate a specific attribute in the data
+    - uncertainty like a standard error ribbon
+    - sub-group of data important to your analysis 
+  - use to create enclosure or indicate similarity
+  - indicate different periods of time
+    - separate observed vs forecast data
+
++ Text and shading together
+
+  - shading to make the data stand out
+  - text to explain what it is or why it is important
+
+</div>
+
+
+But "_how do I do it in R??_"
+===============================================
+
+<div style="float: right; width: 95%;">
+
++ You may have ideas of how to use **titles, color (contrast), size/shape, and annotations**
+
+  - but how actually do it??
+  - it is one thing to know what you want to do and another to do it software
+  
++ This is a problem in all software
+
+  - I have spent countless hours in Excel trying to make tables and graphs look just right
+  - one of the benefits of R is that you can set up themes and functions to do these things for you
+  - once you determine a preferred format, make your own library of code to create preferred visual effects
+  
++ We will spend the rest of today working on methods to focus your audiences attention
+
+  - but remember, there is more than one way to accomplish something so you may find another way
+  - use whichever method you feel is most effective
+  - every time I teach a class I learn a new method that a student discovers
+    - packages are updated and new ones created
+
+</div>
+
+

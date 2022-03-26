@@ -1,0 +1,249 @@
+---
+title: "Annotating graphs: Shading, lines and text"
+author: "Gareth Green"
+output: slidy_presentation
+---
+
+```{r echo = FALSE}
+# Course: 5210 Communicating Data
+# Purpose: Demonstrate shading, lines and text in graphs
+# Date: August 5, 2019
+# Author: Gareth Green
+
+```
+
+```{r echo = FALSE}
+# Clear environment of variables and functions
+rm(list = ls(all = TRUE)) 
+
+# Clear environmet of packages
+if(is.null(sessionInfo()$otherPkgs) == FALSE)lapply(paste("package:", names(sessionInfo()$otherPkgs), sep=""), detach, character.only = TRUE, unload = TRUE)
+
+```
+
+```{r message = FALSE, echo = FALSE}
+# Load packages
+library(tidyverse) 
+
+```
+
+```{r echo = FALSE}
+# Load data
+dis <- read.csv("Disability.csv")
+
+# Recode date to age range, this is to fix an Excel formatting problem
+dis <- dis %>% 
+  mutate(age_group = recode(age_group, `12-Jun` = "6-12"))
+
+# Remove small sample ethnicities
+dis <- dis %>% 
+  filter(ethnicity %in% c("Asian", "Black", "Hispanic", "White"))
+
+```
+
+Annotations
+=========================================
+
+<div style="float: right; width: 95%;">
+
++ What is an annotation?
+
+  - a written note or shading added to text, table or graph
+  - objective is to clarify or highlight a point
+  - make an element standout
+  
++ We will only use the `annotate()` function
+
+  - other functions include: `geom_text()`, `geom_polygon()`, `geom_rect()`, etc
+  - additional packages: `gghighlight`, `ggforce`, `ggrepel`, `directlabels`, etc
+
++ Use carefully
+
+  - adding to much text can clutter
+  - shading can make elements difficult to read
+
++ Note, as we work through these graphs we are not doing all formatting discussed earlier to reduce code lines on the slides
+
+</div>
+
+Base graphic prior to annotation
+=========================================
+
+<div style="float: left; width: 50%;">
+
++ What are several ways we can improve this graph to make it easier for our audience to understand our main point?
+
+```{r ann1}
+# The base graph we have been using
+g_ann <- dis %>% 
+  group_by(ethnicity, gender) %>% 
+  summarize(med_exp = median(expenditures)) %>% 
+  ggplot(mapping = aes(x = reorder(ethnicity, med_exp), y = med_exp, fill = gender)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  coord_flip() +
+  scale_fill_discrete(limits = c( "Male", "Female")) +
+  theme_classic()
+
+```
+
+</div>
+
+<div style="float: left; width: 50%;">
+
+```{r ref.label = "ann1", echo = FALSE}
+# Retrieve previous graph
+g_ann
+
+```
+
+</div>
+
+
+Annotations as context
+=========================================
+
+<div style="float: left; width: 50%;">
+
++ One use of annotations is to provide context
+
+    - context can set the visual in the larger picture 
+    - add information to help with interprestation of the visual
+    - here I add a line and text
+
++ Here we provide the overall median expenditures as context to compare median expenditures of each ethnicity
+
+    - note that we are using hline and reversing x and y since we use `coord_flip()` prior to adding these layers
+    - if we added these annotations prior to adding `coord_flip()` we would not need to reverse our annotations
+
++ Location of the text is done by setting x and y
+
+    - the height is set as x = "Hispanic", which is based on the center of that factor level
+        - I could also set x = 1 to get the same location
+    - note we set hjust = 1 to move the text right of center
+        - I have also added 200 to the y location to move the lable off of the line
+
+</div>
+
+<div style="float: left; width: 50%;">
+
+```{r}
+# The base graph we have been using
+g_ann + 
+  geom_hline(yintercept = median(dis$expenditures)) +
+  annotate(geom = "text", x = "Hispanic", 
+           y = 200 + median(dis$expenditures), 
+           label = "Median expenditures", hjust = 0) 
+
+```
+
+</div>
+
+
+Shading to highlight a finding
+=========================================
+
+<div style="float: left; width: 50%;">
+
++ Use a shaded shape to highlight an area on the graph
+
+    - suppose we want to highlight that white and black male have higher median expenditures 
+    - we can add two custom shaded rectangles
+    - we could then add text or mention in the title/sub-title
+    
++ I have set the y coordinates of the rectangle based on calculations
+
+    - could also just set hard numbers, but if the data changed I'd have to adjust
+
++ x-coordinates are set with location of factor levels in the visual
+
+    - can you find a way to base it off of the actual factor level?
+
++ `fill =` sets the color of the shading
+
+    - `color =` sets the color of the outline of the shaded shape
+    - `alpha = 0.5` sets the transparancey of the shading
+
+</div>
+
+<div style="float: left; width: 50%;">
+
+```{r }
+# The base graph we have been using
+g_ann + 
+  annotate(geom = "rect", xmin = 3.5, xmax = 4.5,
+           ymin = -200, ymax = 200 + median(dis$expenditures[dis$ethnicity == "White" & dis$gender == "Male"]),
+           fill = "lightblue", alpha = 0.5) +
+  annotate(geom = "rect", xmin = 1.5, xmax = 2.5,
+           ymin = -200, ymax = 200 + median(dis$expenditures[dis$ethnicity == "Black" & dis$gender == "Male"]),
+           fill = "lightblue", alpha = 0.5) 
+
+```
+
+
+</div>
+
+
+Shading of time-series
+=========================================
+
+```{r echo = FALSE}
+# Create random dates for making line graphs
+set.seed(123)
+dis$date <- sample(seq(as.Date("2015/01/01"), as.Date("2018/01/01"), by = "month"), nrow(dis), replace = TRUE)
+
+```
+
+<div style="float: left; width: 50%;">
+
++ An excellent use of shading is to highlight a specific time period on a line graph
+
+    - it tels your audience what period is most important to your point
+
+```{r ann4, eval = FALSE}
+# Look at median expenditures over time 
+dis %>% 
+  group_by(date) %>% 
+  summarize(med_exp = median(expenditures)) %>% 
+  ggplot(mapping = aes(x = date, y = med_exp)) + 
+  geom_line() +
+  annotate(geom = "rect", xmin = as.Date("2017-09-01"), 
+           xmax = as.Date("2017-11-01"), 
+           ymin = 3000, ymax = 33000, 
+           fill = "lightblue", alpha = 0.5) +
+  theme_classic()
+
+```
+
++ One thing to note is that your x-axis settings need to be converted to dates using `as.Date()`
+
+    - in general your coordinates must be in the units of the data on the graph
+    - you can add or subract "units" to shift annotations left or right
+
+</div>
+
+<div style="float: left; width: 50%;">
+
+```{r ref.label = "ann4", echo = FALSE}
+# Call graph from previous chunk
+
+```
+
+</div>
+    
+    
+Wrap up
+=========================================
+
++ Annotations can be used to:
+
+    - provide context: set the finding within the bigger picture
+    - highlight findings: make it easier for your audienct to see and understand your point
+
++ Be careful not to add clutter to your visual
+
++ We have only used the `annotation()` function, you should _experiment_ with:
+
+    - other functions include: `geom_text()`, `geom_polygon()`, `geom_rect()`, etc
+    - additional packages: `gghighlight`, `ggforce`, `ggrepel`, `directlabels`, etc
+
++ There is a lot more you can do!!
